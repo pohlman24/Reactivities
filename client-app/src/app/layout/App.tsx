@@ -1,67 +1,104 @@
 import { useState, useEffect } from 'react';
 import './styles.css';
-import axios from 'axios';
 import { Container } from 'semantic-ui-react';
 import { Activity } from '../models/activity';
 import NavBar from './NavBar';
 import ActivityDashboard from '../../Features/activities/dashboard/ActivityDashboard';
 import { v4 as uuid } from 'uuid';
+import agent from '../api/agent';
+import LoadingComponent from './LoadingComponent';
 
 function App() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<Activity | undefined>(undefined);
   const [editMode, setEditMode] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true)
+  const [submitting, setSubmitting] = useState<boolean>(false)
 
   // connect to api at load using axios 
   useEffect(() => {
-    axios.get<Activity[]>('http://localhost:5000/api/activities')
-    .then(response => 
+    agent.Activities.list().then(response => 
       {
-        setActivities(response.data)
+        let activities: Activity[] = [];
+        response.forEach(activity => 
+          {
+            activity.date = activity.date.split('T')[0];
+            activities.push(activity);
+          })
+        setActivities(activities)
+        setLoading(false)
       })
   }, [])
 
-  // retrieves activity based on id, gets passed to Activitylist and onClick function 
+  // retrieves activity based on id, gets passed to Activitylist and onClick function to display on right side of screen
   function handleSelectActivity(id: string)
   {
     setSelectedActivity(activities.find(x => x.id === id));
   }
 
-  // sets the activity to undefined
+  // sets the activity to undefined, gets passed to ActivityList and onClick funciton to hide current selectedActivity
   function handleCancelSelectActivity()
   {
     setSelectedActivity(undefined)
   }
 
-  // 
+  // sets editMode for input field popup. if id is passed (editing) then pass that id
   function handleFormOpen(id?: string)
   {
     id ? handleSelectActivity(id) : handleCancelSelectActivity();
     setEditMode(true);
   }
 
+  // disable editmode to hide form 
   function handleFormClose()
   {
     setEditMode(false);
   }
   
+  // manages to data changes if user creates or edits activity
   function handleCreateOrEditActivity(activity: Activity)
   {
-    // if the activity has an id(editing), then filter out all activities other than the matching id and set it 
-    activity.id ? setActivities([...activities.filter(x => x.id !== activity.id), activity])
-    : setActivities([...activities, {...activity, id: uuid()}])
-    setEditMode(false)
-    setSelectedActivity(activity)
+    setSubmitting(true)
+    if(activity.id)
+    {
+      agent.Activities.update(activity).then(() =>
+      {
+        setActivities([...activities.filter(x => x.id !== activity.id), activity])
+        setSelectedActivity(activity)
+        setEditMode(false)
+        setSubmitting(false)
+      })
+    }
+    else
+    {
+      activity.id = uuid();
+      agent.Activities.create(activity).then(() => 
+      {
+        setActivities([...activities, activity])
+        setSelectedActivity(activity)
+        setEditMode(false)
+        setSubmitting(false)
+      })
+    }
   }
 
   function handleDetete(id: string)
   {
-    setActivities([...activities.filter(x => x.id !==id)])
+    setSubmitting(true)
+    agent.Activities.delete(id).then(() =>
+    {
+      setActivities([...activities.filter(x => x.id !==id)])
+      setSubmitting(false)
+    })
+    
   }
+
+
+  if(loading) return <LoadingComponent content='loading App' />
 
   return (
     <>
-      <NavBar  openForm={handleFormOpen} />
+      <NavBar openForm={handleFormOpen} />
       <Container style={{marginTop: '7em'}} >
         <ActivityDashboard 
           activities={activities} 
@@ -73,6 +110,7 @@ function App() {
           closeForm={handleFormClose}
           createOrEdit={handleCreateOrEditActivity}
           deleteActivity={handleDetete}
+          submitting={submitting}
         />
       </Container>
     </>
