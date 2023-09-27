@@ -1,14 +1,26 @@
 import { Button, Card, Image } from "semantic-ui-react"
 import { useStore } from "../../../app/stores/store";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
+import { observer } from "mobx-react-lite";
+import { Link, useParams } from "react-router-dom";
+import { useEffect } from "react";
 
-export default function ActivityDetails() {
+export default observer(function ActivityDetails() {
 
     const {activityStore} = useStore();
-    const {selectedActivity: activity, openForm, cancelSelectedActivity} = activityStore
+    const {selectedActivity: activity, loadActivity, loadingInital} = activityStore
+    const {id} = useParams();
+    
+    useEffect(() => 
+    {
+        if(id)
+        {
+            loadActivity(id)
+        }
+    }, [id, loadActivity])
 
     // just to remove errors bc typescript thinks that it could be undefined even though we check for that in the activityDashboard
-    if(!activity) return <LoadingComponent />;
+    if(loadingInital || !activity) return <LoadingComponent />;
 
     return (
         <Card fluid>
@@ -24,10 +36,10 @@ export default function ActivityDetails() {
             </Card.Content>
             <Card.Content extra>
                 <Button.Group>
-                    <Button basic color="blue" content="Edit" onClick={() => openForm(activity.id)}/>
-                    <Button basic color="grey" content="Cancel" onClick={() => cancelSelectedActivity()}/>
+                    <Button basic color="blue" content="Edit" as={Link} to={`/manage/${activity.id}`}/>
+                    <Button basic color="grey" content="Cancel" as={Link} to={`/activities`} />
                 </Button.Group>
             </Card.Content>
         </Card>
     )
-}
+})

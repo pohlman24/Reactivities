@@ -1,15 +1,22 @@
 import { Grid } from "semantic-ui-react"
 import ActivityList from "./ActivityList"
-import ActivityDetails from "../details/ActivityDetails"
-import ActivivityForm from "../form/ActivivityForm"
 import { useStore } from "../../../app/stores/store"
 import { observer } from "mobx-react-lite"
+import { useEffect } from "react"
+import LoadingComponent from "../../../app/layout/LoadingComponent"
 
 export default observer(function ActivityDashboard()
 {
-
     const {activityStore} = useStore();
-    const {selectedActivity, editMode} = activityStore
+    const {loadActivites, activityRegistry} = activityStore;
+    
+    // connect to api at load using axios 
+    useEffect(() => {
+        if(activityRegistry.size <= 1) loadActivites();
+    }, [loadActivites, activityRegistry.size])
+    
+  
+    if(activityStore.loadingInital) return <LoadingComponent content='Loading App' />
 
     return (
         <Grid>
@@ -17,9 +24,7 @@ export default observer(function ActivityDashboard()
                 <ActivityList />
             </Grid.Column>
             <Grid.Column width={6}>
-                { selectedActivity && !editMode && 
-                <ActivityDetails /> }
-                { editMode && <ActivivityForm /> }   
+                <h2>Activity filters</h2>
             </Grid.Column>
         </Grid>
     )
