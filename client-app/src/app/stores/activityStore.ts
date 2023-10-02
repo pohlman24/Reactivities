@@ -23,6 +23,29 @@ export default class ActivityStore {
             Date.parse(a.date) - Date.parse(b.date));
     }
 
+    // makes an array of object where each object has a key that is a unique date
+    get groupedActivites()
+    {
+        // Object.entries takes an object and returns an array with all key,value pairs as a sub array [[key1, value1], [key2, value2]]
+        return Object.entries(
+            // reduce((accumulator, current value) => {})
+            this.activitiesByDate.reduce((activities, activity) => 
+            {
+                const date = activity.date; // key for object
+                // set value for date key. if date already exist in activities array, 
+                // then add current activity to the key along with all the others, if it doesnt exist yet, then add just the activity
+                activities[date] = activities[date] ? [...activities[date], activity] : [activity];
+                return activities;
+
+            }, {} as {[key: string]: Activity[]}) // key will be a string and value will be an activity array
+        )
+    }
+
+    // return object will look something like:
+    // [
+    //     [date: [activity1, activity2, activity3]]
+    // ]
+
     loadActivity = async (id: string) => 
     {
         this.setLoadingInital(true);
