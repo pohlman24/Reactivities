@@ -2,6 +2,7 @@ import { makeAutoObservable, runInAction } from "mobx"
 import { Activity } from "../models/activity"
 import agent from "../api/agent";
 import {v4 as uuid } from 'uuid';
+import { format } from "date-fns";
 
 // so define variables that were previously useState hooks 
 // replace each 'handleXYZ' function in the App.tsx with a new funciton here. will do almost exact same thing. 
@@ -20,7 +21,7 @@ export default class ActivityStore {
     get activitiesByDate()
     {
         return Array.from(this.activityRegistry.values()).sort((a, b) => 
-            Date.parse(a.date) - Date.parse(b.date));
+            a.date!.getTime() - b.date!.getTime());
     }
 
     // makes an array of object where each object has a key that is a unique date
@@ -31,7 +32,7 @@ export default class ActivityStore {
             // reduce((accumulator, current value) => {})
             this.activitiesByDate.reduce((activities, activity) => 
             {
-                const date = activity.date; // key for object
+                const date = format(activity.date!, 'dd MMM yyyy') // key for object
                 // set value for date key. if date already exist in activities array, 
                 // then add current activity to the key along with all the others, if it doesnt exist yet, then add just the activity
                 activities[date] = activities[date] ? [...activities[date], activity] : [activity];
@@ -81,7 +82,7 @@ export default class ActivityStore {
 
     private setActivty = (activity: Activity) => 
     {
-        activity.date = activity.date.split('T')[0];
+        activity.date = new Date(activity.date!);
         this.activityRegistry.set(activity.id, activity)
     }
 
