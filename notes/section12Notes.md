@@ -10,6 +10,7 @@
 
 # Data Context 
 - instead of using dbContext will we will now use `IdentityDbContext<AppUser>`
+    - this is why we dont need the new DbSet<>
 - add migration with `dotnet ef migrations add description -p .\Persistance\ -s API`
 
 # Services 
