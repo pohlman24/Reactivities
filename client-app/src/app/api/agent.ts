@@ -3,7 +3,9 @@ import { Activity } from '../models/activity';
 import { toast } from 'react-toastify';
 import { router } from '../router/route';
 import { store } from '../stores/store';
+import { User, UserFormValues } from '../models/User';
 
+// add manual delay to showcase the loading icons
 const sleep = (delay: number) => 
 {
     return new Promise((resolve) => 
@@ -12,8 +14,16 @@ const sleep = (delay: number) =>
     })
 }
 
+// setting URL for our API
 axios.defaults.baseURL = 'http://localhost:5000/api';
 
+axios.interceptors.request.use(config => {
+    const token = store.commonStore.token;
+    if(token && config.headers) config.headers.Authorization = `Bearer ${token}`
+    return config;
+})
+
+// add an interceptor so that we can check for error handling
 axios.interceptors.response.use(async response => {
     await sleep(300);
     return response;
@@ -56,6 +66,7 @@ axios.interceptors.response.use(async response => {
 
 const responseBody = <T> (response: AxiosResponse<T>) => response.data;
 
+// create object for available request options
 const requests = 
 {
     get: <T> (url: string) => axios.get<T>(url).then(responseBody),
@@ -64,6 +75,7 @@ const requests =
     del: <T> (url: string) => axios.delete<T>(url).then(responseBody),
 }
 
+// create object for available CRUD actions on activities
 const Activities = 
 {
     list: () => requests.get<Activity[]>('/activities'),
@@ -73,9 +85,19 @@ const Activities =
     delete: (id: string) => requests.del<void>(`activities/${id}`)
 }
 
+// create object for available CRUD actions on account
+const Account = 
+{
+    current: () => requests.get<User>('/account'),
+    login: (user: UserFormValues) => requests.post('/account/login', user),
+    register: (user: UserFormValues) => requests.post<User>('/account/register', user)
+}
+
+// return both account and activites as a single object
 const agent = 
 {
-    Activities 
+    Activities,
+    Account
 }
 
 export default agent
