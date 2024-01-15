@@ -9,12 +9,12 @@ import ActivityFilters from "./ActivityFilters"
 export default observer(function ActivityDashboard()
 {
     const {activityStore} = useStore();
-    const {loadActivites, activityRegistry} = activityStore;
+    const {loadActivities, activityRegistry} = activityStore;
     
     // connect to api at load using axios 
     useEffect(() => {
-        if(activityRegistry.size <= 1) loadActivites();
-    }, [loadActivites, activityRegistry.size])
+        if(activityRegistry.size <= 1) loadActivities();
+    }, [loadActivities, activityRegistry.size])
     
   
     if(activityStore.loadingInital) return <LoadingComponent content='Loading activities...' />

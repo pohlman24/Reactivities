@@ -1,8 +1,9 @@
 import { makeAutoObservable, runInAction } from "mobx"
-import { Activity } from "../models/activity"
+import { Activity, ActivityFormValues } from "../models/activity"
 import agent from "../api/agent";
-import {v4 as uuid } from 'uuid';
 import { format } from "date-fns";
+import { store } from "./store";
+import { Profile } from "../models/profile";
 
 // so define variables that were previously useState hooks 
 // replace each 'handleXYZ' function in the App.tsx with a new funciton here. will do almost exact same thing. 
@@ -25,7 +26,7 @@ export default class ActivityStore {
     }
 
     // makes an array of object where each object has a key that is a unique date
-    get groupedActivites()
+    get groupedActivities ()
     {
         // Object.entries takes an object and returns an array with all key,value pairs as a sub array [[key1, value1], [key2, value2]]
         return Object.entries(
@@ -62,7 +63,7 @@ export default class ActivityStore {
             try 
             {
                 activity = await agent.Activities.details(id);
-                this.setActivty(activity);
+                this.setActivity(activity);
                 runInAction(() => this.selectedActivity = activity);
                 this.setLoadingInital(false);
                 return activity;
@@ -80,13 +81,20 @@ export default class ActivityStore {
         return this.activityRegistry.get(id);
     }
 
-    private setActivty = (activity: Activity) => 
-    {
+    private setActivity = (activity: Activity) => {
+        const user = store.userStore.user;
+        if (user) {
+            activity.isGoing = activity.attendees!.some(
+                a => a.username === user.username
+            );
+            activity.isHost = activity.hostUsername === user.username;
+            activity.host = activity.attendees?.find(x => x.username === activity.hostUsername);
+        }
         activity.date = new Date(activity.date!);
-        this.activityRegistry.set(activity.id, activity)
+        this.activityRegistry.set(activity.id, activity);
     }
 
-    loadActivites = async () => 
+    loadActivities = async () => 
     {
         this.setLoadingInital(true);
         try 
@@ -94,7 +102,7 @@ export default class ActivityStore {
             const activities = await agent.Activities.list();
             activities.forEach(activity => 
             {
-                this.setActivty(activity)
+                this.setActivity(activity)
             })
             this.setLoadingInital(false)
         } 
@@ -110,54 +118,46 @@ export default class ActivityStore {
         this.loadingInital = state;
     }
 
-    createActivity = async (activity: Activity) => 
+    createActivity = async (activity: ActivityFormValues) => 
     {
-        this.loading = true;
-        activity.id = uuid()
+        const user = store.userStore.user;
+        const attendee = new Profile(user!);
         try 
         {
             await agent.Activities.create(activity)
+            const newActivity = new Activity(activity);
+            newActivity.hostUsername = user!.username;
+            newActivity.attendees = [attendee];
+            this.setActivity(newActivity);
             runInAction(() => 
             {
-                this.activityRegistry.set(activity.id, activity);
-                this.selectedActivity = activity;
-                this.editMode = false;
-                this.loading = false;
+                this.selectedActivity = newActivity;
             })
         } 
         catch (error) 
         {   
             console.log(error)
-            runInAction(() => 
-            {
-                this.loading = false;
-            })
         }
     }
 
-    updateActivity = async (activity: Activity) => 
+    updateActivity = async (activity: ActivityFormValues) => 
     {
-        this.loading = true;
         try 
         {
             await agent.Activities.update(activity);
             runInAction(() => 
             {
-                // update the store activites by filtering out the old id and adding the new activity
-                // this.activities = [...this.activities.filter(a => a.id !== activity.id), activity]
-                this.activityRegistry.set(activity.id, activity)
-                this.selectedActivity = activity
-                this.editMode = false
-                this.loading = false
+                if (activity.id) {
+                    // get the current activity from the store and fill in its values and then add the values from the form 
+                    const updatedActivity = {...this.getActivity(activity.id), ...activity}
+                    this.activityRegistry.set(activity.id, updatedActivity as Activity)
+                    this.selectedActivity = updatedActivity as Activity
+                }
             })
         } 
         catch (error) 
         {
             console.log(error)
-            runInAction(() => 
-            {
-                this.loading = false;
-            })
         }
     }
 
@@ -181,6 +181,49 @@ export default class ActivityStore {
                 this.loading = false;
             })
         }
-        
+    }
+
+    updateAttendence = async () => {
+        const user = store.userStore.user;
+        this.loading = true;
+
+        try {
+            await agent.Activities.attend(this.selectedActivity!.id);
+
+            runInAction(() => {
+                // remove attendee if alreadyd going
+                if (this.selectedActivity?.isGoing) {
+                    this.selectedActivity.attendees = 
+                        this.selectedActivity.attendees?.filter(a => a.username !== user?.username);
+                    this.selectedActivity.isGoing = false;
+                }
+                // else add attendee
+                else {
+                    const attendee = new Profile(user!);
+                    this.selectedActivity?.attendees?.push(attendee);
+                    this.selectedActivity!.isGoing = true;
+                }
+                this.activityRegistry.set(this.selectedActivity!.id, this.selectedActivity!)
+            })
+        } catch (error) {
+            console.log(error);
+        } finally {
+            runInAction(() => this.loading = false);
+        }
+    }
+
+    cancelActivityToggle = async () => {
+        this.loading = true;
+        try {
+            await agent.Activities.attend(this.selectedActivity!.id);
+            runInAction(() => {
+                this.selectedActivity!.isCancelled = !this.selectedActivity?.isCancelled;
+                this.activityRegistry.set(this.selectedActivity!.id, this.selectedActivity!);
+            })
+        } catch (error) {
+            console.log(error);
+        } finally {
+            runInAction(() => this.loading = false)
+        }
     }
 }

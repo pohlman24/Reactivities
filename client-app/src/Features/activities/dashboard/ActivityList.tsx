@@ -7,11 +7,11 @@ import { Fragment } from "react";
 export default observer(function ActivityList()
 {
     const {activityStore} = useStore();
-    const {groupedActivites} = activityStore;
+    const {groupedActivities } = activityStore;
 
     return (
         <>
-            {groupedActivites.map(([group, activities]) =>(
+            {groupedActivities .map(([group, activities]) =>(
                 <Fragment key={group}>
                     <Header sub color='teal'>
                         {group}
