@@ -6,12 +6,13 @@ interface Props {
     name: string;
     label?: string;
     type?: string;
+    hidden?: boolean;
 }
 
 export default function MyTextInput(props: Props) {
   const [field, meta] = useField(props.name);
   return (
-    <Form.Field error={meta.touched && !!meta.error}>
+    <Form.Field error={meta.touched && !!meta.error} >
         <label>{props.label}</label>
         <input {...field} {...props} />
         {meta.touched && meta.error ? (

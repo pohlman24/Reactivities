@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { router } from '../router/route';
 import { store } from '../stores/store';
 import { User, UserFormValues } from '../models/User';
-import { Photo, Profile } from '../models/profile';
+import { Photo, Profile, ProfileFormValues } from '../models/profile';
 
 // add manual delay to showcase the loading icons
 const sleep = (delay: number) => 
@@ -108,7 +108,8 @@ const Profiles = {
         })
     },
     setMainPhoto: (id: string) => requests.post(`/photos/${id}/setMain`, {}),
-    deletePhoto: (id: string) => requests.del(`/photos/${id}`)
+    deletePhoto: (id: string) => requests.del(`/photos/${id}`),
+    editProfile: (profile: ProfileFormValues) => requests.put(`/profiles/${profile.username}`, profile)
 }
 
 // return both account and activites as a single object

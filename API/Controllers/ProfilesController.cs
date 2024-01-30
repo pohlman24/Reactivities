@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Application.Profiles;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,7 +8,13 @@ namespace API.Controllers
         [HttpGet("{username}")]
         public async Task<IActionResult> GetProfile(string username)
         {
-            return handleResult(await Mediator.Send(new Details.Query{Username =  username}));
+            return handleResult(await Mediator.Send(new Details.Query { Username = username }));
+        }
+
+        [HttpPut("{username}")]
+        public async Task<IActionResult> Edit([FromBody] Profile profile)
+        {
+            return handleResult(await Mediator.Send(new Edit.Command{Profile = profile}));
         }
     }
 }
