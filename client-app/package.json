@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@microsoft/signalr": "^8.0.0",
     "@types/node": "^20.5.7",
     "@types/react": "^18.2.21",
     "@types/react-calendar": "^4.1.0",

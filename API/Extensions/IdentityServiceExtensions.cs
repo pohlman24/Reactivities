@@ -34,6 +34,21 @@ namespace API.Extensions
                             ValidateIssuer = false,
                             ValidateAudience = false
                         };
+                        opt.Events = new JwtBearerEvents
+                        {
+                            OnMessageReceived = context => 
+                            {
+                                // get token from querty string 
+                                var accessToken = context.Request.Query["access_token"];
+                                // get url path and then check if its the path to the chat app
+                                var path = context.HttpContext.Request.Path;
+                                if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/chat")))
+                                {
+                                    context.Token = accessToken;
+                                } 
+                                return Task.CompletedTask;
+                            }
+                        };
                     });
 
 

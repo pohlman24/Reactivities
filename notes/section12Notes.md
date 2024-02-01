@@ -28,6 +28,7 @@
 - data transfer object: object carrying data between process
 - one process is the client and the user submitting a form and its going to trasmit some data to our API and we want to recieve that data 
     - to help the controllers bind infomation coming from the http request, we create DTOs
+- used to shape data so we dont return unnesscary things and can include extra --- often need to make a mapper for it though
 
 # Json Web tokens (Jwt) 
 - a lot of 'boiler plate' code

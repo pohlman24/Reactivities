@@ -29,6 +29,7 @@ so we will create an interface in our app project for it
 `services.AddScoped<IUserAccessor, UserAccessor>();`
 
 # Loading Related Data W/ Eager loading 
+- load related entity along with the other entity loading
 - in order to load related data, ie loading the activities and the attendees asscioated with it
 ```
  var activities = await _context.Activities
@@ -39,7 +40,11 @@ so we will create an interface in our app project for it
 - this still wont worok completelty bc its stuck in an infinte loop so because of the nameing of info
     - so we will create a new class called Profiles which contains the props 
     - after that we then create an ActivityDto which is nearly identitcal to the model but the list will be of profiles instead of Attendees
+- will be removed later because it makes a cluster query that is too messy
 
+# ProjectTo 
+- auto mapper extension
+- handles loading related data
 
 # Create new Handler for joing activity
 - will follow similar pattern as with other handlers and API calls

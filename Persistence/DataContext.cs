@@ -16,6 +16,7 @@ namespace Persistence
 
         public DbSet<ActivityAttendee> ActivityAttendees { get; set; }
         public DbSet<Photo> Photos { get; set; }
+        public DbSet<Comment> Comments { get; set; }
 
         // this is the section where we will build out the entity relationships
         protected override void OnModelCreating(ModelBuilder builder)
@@ -33,7 +34,10 @@ namespace Persistence
                 .HasOne(a => a.Activity)
                 .WithMany(u => u.Attendees)          // Attendees is the name of the ICollection prop in Activity
                 .HasForeignKey(aa => aa.ActivityId); // id of the single entity 
-            
+            builder.Entity<Comment>()
+                .HasOne(a => a.Activity)
+                .WithMany(c => c.Comments)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
     }

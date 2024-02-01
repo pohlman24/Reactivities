@@ -12,7 +12,7 @@ import ActivityDetailedSidebar from "./ActivityDetailedSidebar";
 export default observer(function ActivityDetails() {
 
     const {activityStore} = useStore();
-    const {selectedActivity: activity, loadActivity, loadingInital} = activityStore
+    const {selectedActivity: activity, loadActivity, loadingInital, clearSelectedActivtiy} = activityStore
     const {id} = useParams();
     
     useEffect(() => 
@@ -21,7 +21,8 @@ export default observer(function ActivityDetails() {
         {
             loadActivity(id)
         }
-    }, [id, loadActivity])
+        return () => clearSelectedActivtiy();
+    }, [id, loadActivity,clearSelectedActivtiy])
 
     // just to remove errors bc typescript thinks that it could be undefined even though we check for that in the activityDashboard
     if(loadingInital || !activity) return <LoadingComponent />;
@@ -31,7 +32,7 @@ export default observer(function ActivityDetails() {
             <Grid.Column width={10}>
                 <ActivityDetailedHeader activity={activity}/>
                 <ActivityDetailedInfo activity={activity}/>
-                <ActivityDetailedChat />
+                <ActivityDetailedChat activityId={activity.id} />
             </Grid.Column>
             <Grid.Column width={6}>
                 <ActivityDetailedSidebar activity={activity} />
