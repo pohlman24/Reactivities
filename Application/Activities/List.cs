@@ -1,7 +1,7 @@
 using Application.Core;
+using Application.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -20,8 +20,10 @@ namespace Application.Activities
         {
             private readonly DataContext _context;
             private IMapper _Mapper;
-            public Handler(DataContext context, IMapper mapper)
+            private readonly IUserAccessor _userAccessor;
+            public Handler(DataContext context, IMapper mapper, IUserAccessor userAccessor)
             {
+                _userAccessor = userAccessor;
                 _Mapper = mapper;
                 _context = context;
             }
@@ -30,7 +32,8 @@ namespace Application.Activities
             {
                 // to load related data, ie so that activites also have the attendess we do this
                 var activities = await _context.Activities
-                    .ProjectTo<ActivityDto>(_Mapper.ConfigurationProvider)
+                    .ProjectTo<ActivityDto>(_Mapper.ConfigurationProvider, 
+                        new {currentUsername = _userAccessor.GetUsername()})
                     .ToListAsync(cancellationToken);
                 
                 // // auto mapping

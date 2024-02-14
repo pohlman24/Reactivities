@@ -109,7 +109,9 @@ const Profiles = {
     },
     setMainPhoto: (id: string) => requests.post(`/photos/${id}/setMain`, {}),
     deletePhoto: (id: string) => requests.del(`/photos/${id}`),
-    editProfile: (profile: ProfileFormValues) => requests.put(`/profiles/${profile.username}`, profile)
+    editProfile: (profile: ProfileFormValues) => requests.put(`/profiles/${profile.username}`, profile),
+    updateFollowing: (username: string) => requests.post(`/follow/${username}`, {}),
+    listFollowings: (username: string, predicate: string) => requests.get<Profile[]>(`/follow/${username}?predicate=${predicate}`)
 }
 
 // return both account and activites as a single object

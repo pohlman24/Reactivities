@@ -230,4 +230,17 @@ export default class ActivityStore {
     clearSelectedActivtiy = () => {
     this.selectedActivity = undefined;
     }
+
+    // helper function to update the UI, called in the ProfileStore
+    updateAttendeeFollowing = (username: string) => {
+        this.activityRegistry.forEach(activtiy => {
+            activtiy.attendees?.forEach(attendee => {
+                if (attendee.username === username) {
+                    attendee.following ? attendee.followersCount-- : attendee.followersCount++;
+                    attendee.following = !attendee.following;
+
+                }  
+            })
+        })
+    }
 }
